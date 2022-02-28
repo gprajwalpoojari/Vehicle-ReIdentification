@@ -1,6 +1,7 @@
 '''
 @author: Xiangyu
 '''
+
 import os
 import logging
 import time
@@ -20,13 +21,13 @@ global WRITER
 WRITER = SummaryWriter(log_dir='output/logs')
 
 
-try:
-    from apex.parallel import DistributedDataParallel as DDP
-    from apex.fp16_utils import *
-    from apex import amp, optimizers
-    from apex.multi_tensor_apply import multi_tensor_applier
-except ImportError:
-    raise ImportError("Please install apex from https://www.github.com/nvidia/apex to run this example.")
+# try:
+#     from apex.parallel import DistributedDataParallel as DDP
+#     from apex.fp16_utils import *
+#     from apex import amp, optimizers
+#     from apex.multi_tensor_apply import multi_tensor_applier
+# except ImportError:
+#     raise ImportError("Please install apex from https://www.github.com/nvidia/apex to run this example.")
 
 
 def do_train(
@@ -46,7 +47,7 @@ def do_train(
 
     if device:
         #model.to(device)
-        model.cuda()
+        model.cpu()
         # Apex FP16 training
         if cfg.SOLVER.FP16:
             logging.getLogger("Using Mix Precision training")
@@ -60,7 +61,7 @@ def do_train(
     for epoch in range(start_epoch+1, cfg.SOLVER.MAX_EPOCHS+1):
         logger.info("Epoch[{}] lr={:.2e}"
                     .format(epoch, scheduler.get_lr()[0]))
-
+        print("1")
         # freeze feature layer at warmup stage
         if cfg.SOLVER.FREEZE_BASE_EPOCHS != 0:
             if epoch < cfg.SOLVER.FREEZE_BASE_EPOCHS:
@@ -69,17 +70,19 @@ def do_train(
             elif epoch == cfg.SOLVER.FREEZE_BASE_EPOCHS:
                 logger.info("open all layers")
                 open_all_layers(model)
+        print("1'")
         train(model, dataset, train_loader, optimizer, loss_fn, epoch, cfg, logger)
-        
+        print("2")
         if epoch % cfg.SOLVER.EVAL_PERIOD == 0 or epoch == cfg.SOLVER.MAX_EPOCHS:
             mAP, cmc = validate(model, dataset, val_loader, num_query, epoch, cfg, logger)
             ap_rank_1 = cmc[0]
             if mAP >= best_mAP:
                 best_mAP = mAP
                 torch.save(model.state_dict(), os.path.join(output_dir, 'best.pth'))
-
+        print("3")
         scheduler.step()
-        torch.cuda.empty_cache()  # release cache
+        # torch.cuda.empty_cache()  # release cache
+        print("4")
         torch.save({'state_dict': model.state_dict(), 'epoch': epoch, 'optimizer': optimizer.state_dict()},
                    os.path.join(output_dir, 'resume.pth.tar'))
 
@@ -92,18 +95,27 @@ def train(model, dataset, train_loader, optimizer, loss_fn, epoch, cfg, logger):
     losses = AverageMeter()
     data_time = AverageMeter()
     model_time = AverageMeter()
-
+    print("a")
     start = time.time()
     model.train()
+    print("b")
     ITER = 0
     log_period = cfg.SOLVER.LOG_PERIOD
+    print("c")
     data_start = time.time()
+    print("d")
     # import ipdb; ipdb.set_trace()
+    print(train_loader.dataset)
+    count = 0
     for batch in train_loader:
+        count+=1
+        print(count)
+        print("batch, trainloader :", batch, "  ", train_loader)
+        
         data_time.update(time.time() - data_start)
         input, target, _, _, _ = batch
         input = input.cuda()
-        target = target.cuda()
+        target = target.cpu()
         model_start = time.time()
         ITER += 1
         optimizer.zero_grad()
@@ -117,10 +129,10 @@ def train(model, dataset, train_loader, optimizer, loss_fn, epoch, cfg, logger):
             loss.backward()
         optimizer.step()
 
-        torch.cuda.synchronize()
+        # torch.cuda.synchronize()
 
         model_time.update(time.time() - model_start)
-        losses.update(to_python_float(loss.data), input.size(0))
+        losses.update(float(loss.data), input.size(0))
 
         if ITER % log_period == 0:
             logger.info("Epoch[{}] Iteration[{}/{}] id_loss: {:.3f}, metric_loss: {:.5f}, total_loss: {:.3f}, data time: {:.3f}s, model time: {:.3f}s"
@@ -132,8 +144,10 @@ def train(model, dataset, train_loader, optimizer, loss_fn, epoch, cfg, logger):
             WRITER.add_scalar(f'Loss_Train_totals',losses.val, ITER_LOG)
             ITER_LOG+=1
         data_start = time.time()
+    print("end1")
     end = time.time()
     logger.info("epoch takes {:.3f}s".format((end - start)))
+    print("End2")
     return
 
 
@@ -144,7 +158,7 @@ def validate(model, dataset, val_loader, num_query, epoch, cfg, logger):
     with torch.no_grad():
         for batch in val_loader:
             data, pid, camid, img_path = batch
-            data = data.cuda()
+            data = data.cpu()
             feats = model(data)
             output = [feats, pid, camid, img_path]
             metric.update(output)

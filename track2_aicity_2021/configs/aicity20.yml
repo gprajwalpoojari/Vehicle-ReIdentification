@@ -4,9 +4,10 @@ DATALOADER:
   SAMPLER: 'softmax_triplet'
 DATASETS:
   COMBINEALL: False
-  ROOT_DIR: '/media/data/ai-city/Track2'
-  TEST: ('aicity20_split',)
-  TRAIN: ('aicity20_split',)
+  # ROOT_DIR: '/media/data/ai-city/Track2'
+  ROOT_DIR: 'C:\Users\gpraj\Desktop\Directed_Research\Code'
+  TEST: ('veri',) ##??
+  TRAIN: ('veri',) ##??
 INPUT:
   AUGMIX_PROB: 0.25
   COLORJIT_PROB: 0.25
@@ -26,7 +27,7 @@ INPUT:
   SIZE_TRAIN: [320, 320]
   VERTICAL_FLIP_PROB: 0.0
 MODEL:
-  DEVICE: 'cuda'
+  DEVICE: 'cpu'
   DEVICE_ID: "'0'"
   DROPOUT_PROB: 0.0
   EMBEDDING_DIM: 512
@@ -41,11 +42,11 @@ MODEL:
   LOCAL_DIM: 512
   METRIC_LOSS_TYPE: 'triplet'
   MODEL_TYPE: 'baseline_multiheads'
-  NAME: 'resnext101_ibn_a'
+  NAME: 'resnet50'
   NECK: 'bnneck'
   POOLING_METHOD: 'GeM'
   PRETRAIN_CHOICE: 'imagenet'
-  PRETRAIN_PATH: 'pretrained_ckpts/resnext101_ibn_a.pth.tar'
+  PRETRAIN_PATH: 'C:\Users\gpraj\Desktop\Directed_Research\Code\pretrained_ckpts\resnet50_ibn_a.pth'
   TRIPLET_LOSS_WEIGHT: 1.0
 OUTPUT_DIR: 'output/'
 SOLVER:
@@ -64,11 +65,11 @@ SOLVER:
   FREEZE_BASE_EPOCHS: 0
   GAMMA: 0.1
   HARD_EXAMPLE_MINING_METHOD: batch_hard
-  IMS_PER_BATCH: 32
+  IMS_PER_BATCH: 32     ###Make smaller
   LOG_PERIOD: 50
   LR_SCHEDULER: 'cosine_step'
   MARGIN: 0.3
-  MAX_EPOCHS: 12
+  MAX_EPOCHS: 5
   MOMENTUM: 0.9
   NO_BIAS_DECAY: False
   OPTIMIZER_NAME: 'Adam'

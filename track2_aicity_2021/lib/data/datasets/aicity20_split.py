@@ -21,9 +21,11 @@ class AICity20_Split(BaseImageDataset):
   ----------------------------------------
 
     """
-    dataset_dir = 'AIC21_Track2_ReID/AIC21_Track2_ReID'
+    # dataset_dir = 'AIC21_Track2_ReID/AIC21_Track2_ReID'
+    dataset_dir = ''
     dataset_aug_dir = 'AIC20_ReID_Cropped'
     def __init__(self, root='', verbose=True, **kwargs):
+        print(root)
         super(AICity20_Split, self).__init__()
         # import ipdb; ipdb.set_trace()
         self.dataset_dir = osp.join(root, self.dataset_dir)
@@ -38,9 +40,10 @@ class AICity20_Split(BaseImageDataset):
         # self.list_query_path = osp.join(self.dataset_dir, 'name_query.txt')
         # self.list_gallery_path = osp.join(self.dataset_dir, 'name_test.txt')
 
-        self.train_label_path = osp.join(self.dataset_dir, 'train_split.xml')
-        self.test_label_path = osp.join(self.dataset_dir, 'test_split.xml')
-        self.query_label_path = osp.join(self.dataset_dir, 'query_split.xml')
+        # self.train_label_path = osp.join(self.dataset_dir, 'train_split.xml')
+        self.train_label_path = osp.join(self.dataset_dir, 'train_label.xml')
+        self.test_label_path = osp.join(self.dataset_dir, 'test_label.xml')
+        self.query_label_path = osp.join(self.dataset_dir, 'query_label.xml')
 
         self._check_before_run()
 
@@ -98,4 +101,4 @@ class AICity20_Split(BaseImageDataset):
         return dataset
 
 if __name__ == '__main__':
-    dataset = AICity20_Split(root='/media/data/ai-city/Track2/')
+    dataset = AICity20_Split(root='C:\\Users\\gpraj\\Desktop\\Directed_Research\\Code\\VeRi\\')
